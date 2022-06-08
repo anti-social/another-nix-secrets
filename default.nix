@@ -60,8 +60,14 @@ in {
       type = types.attrsOf (types.submodule {
         options = {
           template = mkOption {
-            type = types.path;
+            type = types.nullOr types.path;
             description = "Path to a local template file";
+            default = null;
+          };
+          source = mkOption {
+            type = types.nullOr types.str;
+            description = "Template source";
+            default = null;
           };
         } // commonFileOptions;
       });
@@ -144,7 +150,7 @@ in {
 
     secretTemplateServices = mapAttrs' (name: secret: nameValuePair "secret-template-${name}" (
       let
-        tmpl = pkgs.writeText (toString secret.template) (builtins.readFile secret.template);
+        tmpl = pkgs.writeText (toString name) (if secret.source == null then (builtins.readFile secret.template) else secret.source);
       in {
         enable = true;
         description = "Render ${name} config";
